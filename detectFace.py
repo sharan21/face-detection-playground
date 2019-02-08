@@ -11,12 +11,15 @@ class faceDetect:
 
 
     def __init__(self, instance):
+
         self.instance = instance
         print("object initialised")
 
     def detectFaceOfImage(self,cascade_path, path):
 
         img = cv.imread(path)
+
+
         face_cascade = cv.CascadeClassifier(cascade_path)
         crop_img = []
         gray_img = []
@@ -29,10 +32,18 @@ class faceDetect:
             gray_img.append(img[y:y + h, x:x + w])
 
 
+        self.squareTheImages(crop_img)
+        if(self.assertSquareSize(crop_img)):
+            print "all square"
+        else:
+            print "something went wrong in square the images function"
 
-        # now we have an array of all the cropped faces in crop_img and gray_img, which need to be fixed for size
-        # c
-        self.checkAndFixSize(crop_img)
+        self.printSize(crop_img)
+
+
+        # self.displayCropped(crop_img)
+
+        # self.checkAndFixSize(crop_img)
 
         print("writing cropped images into directories")
 
@@ -48,6 +59,7 @@ class faceDetect:
 
         print("printing sizes of all images")
 
+
         for i in range(len(crop_img)):
             print("shape of the {}th image is".format(i+1))
             print(crop_img[i].shape)
@@ -55,7 +67,64 @@ class faceDetect:
             imgScale = self.inputwidth / width
             newX, newY = crop_img[i].shape[1] * imgScale, crop_img[i].shape[0] * imgScale
             newimg = cv.resize(crop_img[i], (int(newX), int(newY)))
-            cv.imshow("Show by CV2", newimg)\
+
+
+    def displayCropped(self, crop_img):
+        for i in range(len(crop_img)):
+            newimg = cv.resize(crop_img[-1], (int(100), int(100)))
+            cv.imshow("Show by CV2", newimg)
+            cv.waitKey(1000)
+
+
+    def squareTheImages(self, crop_img):
+        print("squaring the images, to conserve aspect ratio while fixing size...")
+
+        for i in range(len(crop_img)):
+            print("shape of the {}th image is".format(i + 1))
+            print crop_img[i].shape
+            height, width, depth = crop_img[i].shape
+
+            if height != width :
+                print("{}th image is unsquare").format(i)
+                diff = width - height
+                if(diff > 0):
+                    print("width excess")
+                    crop_img[i] = crop_img[i][diff/2:width-diff/2,:]
+                else:
+                    print("width excess")
+                    crop_img[i] = crop_img[i][:,diff / 2:width - diff / 2]
+
+    def assertSquareSize(self, crop_img):
+        print "asserting that all images are square size..."
+        for i in range(len(crop_img)):
+            height, width, depth = crop_img[i].shape
+            if height != width:
+                return False
+
+        return True
+
+    def printSize(self,crop_img):
+
+        print "printing sizes of images"
+
+        for i in range(len(crop_img)):
+            print("shape of the {}th image is".format(i + 1))
+            print crop_img[i].shape
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -67,8 +136,6 @@ if __name__ == "__main__":
 
 
 
-# cv.imshow('img',crop_img)
-# cv.waitKey(0)
 # cv.destroyAllWindows()
 
 
