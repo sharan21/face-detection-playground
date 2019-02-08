@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import subprocess
 
 
 class faceDetect:
@@ -8,6 +9,8 @@ class faceDetect:
     path = 'sample_pictures/group1.jpg'
     inputwidth = 100;
     inputheight = 100;
+    crop_img = []
+    gray_img = []
 
 
     def __init__(self, instance):
@@ -24,8 +27,7 @@ class faceDetect:
         img = cv.imread(path)
 
         face_cascade = cv.CascadeClassifier(cascade_path)
-        crop_img = []
-        gray_img = []
+
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         faces = face_cascade.detectMultiScale(gray, 1.5, 1)
@@ -33,17 +35,18 @@ class faceDetect:
         for (x, y, w, h) in faces:
 
             # cv.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-            crop_img.append(img[y:y + h, x:x + w])
-            gray_img.append(gray[y:y + h, x:x + w])
+            self.crop_img.append(img[y:y + h, x:x + w])
+            self.gray_img.append(gray[y:y + h, x:x + w])
 
         print "Finished detecting faces, stored in crop_img and gray_img..."
         print
 
-        crop_img, gray_img = self.checkAndFixSize(crop_img, gray_img)
+        self.crop_img, self.gray_img = self.checkAndFixSize(self.crop_img, self.gray_img)
+        temp = []
 
         # self.exportImages(crop_img, gray_img)
-        gray_normalized = self.normalizeImages(gray_img)
-        self.exportImages()
+        self.normalizeImages(self.gray_img)
+        self.exportImages(self.crop_img, self.gray_img)
 
     def checkAndFixSize(self, crop_img, gray_img):
         print "Scaling the images to proper sizes..."
@@ -91,7 +94,11 @@ class faceDetect:
                     print("width excess!")
                     crop_img[i] = crop_img[i][:,diff / 2:width - diff / 2]
 
+
+
         print("Done!")
+
+        return crop_img
 
     def assertSquareSize(self, crop_img):
         print "Asserting that all images are square size..."
@@ -127,17 +134,27 @@ class faceDetect:
 
         print("Done!")
 
-    def normalizeImages(self, gray_img):
+
+    def normalizeImages(self, gray_img_here):
         print "Normalizing the gray images..."
         print
-        gray_img_numpy = np.array(gray_img)
-        for i in range(len(gray_img)):
+        gray_img_numpy = np.array(gray_img_here)
+        for i in range(len(gray_img_here)):
+            print
             # print "mean of the {}th image", np.mean(gray_img_numpy[i])
             # print "std dev. of the {}th image", np.std(gray_img_numpy[i])
             # print
-            gray_img[i] = (gray_img[i] - np.mean(gray_img_numpy[i])) / np.std(gray_img_numpy[i])
+            gray_img_here[i] = (gray_img_here[i] - np.mean(gray_img_numpy[i]))
 
-        return gray_img
+        return gray_img_here
+
+
+    def deleteAllImages(self):
+
+        print "Deleting all image files..."
+        print
+
+        subprocess.Popen(["bash", "./remove-all.sh"])
 
 
 
